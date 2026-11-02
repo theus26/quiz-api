@@ -1,6 +1,6 @@
 package com.mathe.quiz_biblico_api.dto.usuario;
 
-import com.mathe.quiz_biblico_api.model.Role;
+import com.mathe.quiz_biblico_api.Enum.Role;
 import com.mathe.quiz_biblico_api.model.Usuario;
 
 public record UsuarioDto(long id, String nome, String email, boolean ativo, Role role) {

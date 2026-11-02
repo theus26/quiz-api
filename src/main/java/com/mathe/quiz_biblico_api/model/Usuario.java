@@ -1,5 +1,6 @@
 package com.mathe.quiz_biblico_api.model;
 
+import com.mathe.quiz_biblico_api.Enum.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

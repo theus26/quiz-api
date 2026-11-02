@@ -30,4 +30,51 @@ public class Alternativa {
 
     @Column(nullable = false)
     private short ordem;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Pergunta getPergunta() {
+        return pergunta;
+    }
+
+    public void setPergunta(Pergunta pergunta) {
+        this.pergunta = pergunta;
+    }
+
+    public String getTexto() {
+        return texto;
+    }
+
+    public void setTexto(String texto) {
+        this.texto = texto;
+    }
+
+    public boolean getCorreta() {
+        return correta;
+    }
+
+    public void setCorreta(boolean correta) {
+        this.correta = correta;
+    }
+
+    public short getOrdem() {
+        return ordem;
+    }
+
+    public void setOrdem(short ordem) {
+        this.ordem = ordem;
+    }
+
+    public Alternativa(Pergunta pergunta, String texto, boolean correta, short ordem) {
+        this.pergunta = pergunta;
+        this.texto = texto;
+        this.correta = correta;
+        this.ordem = ordem;
+    }
 }

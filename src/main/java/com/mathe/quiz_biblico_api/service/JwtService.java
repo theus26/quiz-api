@@ -1,7 +1,7 @@
 package com.mathe.quiz_biblico_api.service;
 
 import com.mathe.quiz_biblico_api.dto.auth.TokenDto;
-import com.mathe.quiz_biblico_api.model.Role;
+import com.mathe.quiz_biblico_api.Enum.Role;
 import com.mathe.quiz_biblico_api.model.Usuario;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;

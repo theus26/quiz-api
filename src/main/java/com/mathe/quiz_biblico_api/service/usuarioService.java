@@ -5,7 +5,7 @@ import com.mathe.quiz_biblico_api.dto.PaginacaoDto;
 import com.mathe.quiz_biblico_api.dto.usuario.AtualizarUsuarioDto;
 import com.mathe.quiz_biblico_api.dto.usuario.CriarUsuarioDto;
 import com.mathe.quiz_biblico_api.dto.usuario.UsuarioDto;
-import com.mathe.quiz_biblico_api.model.Role;
+import com.mathe.quiz_biblico_api.Enum.Role;
 import com.mathe.quiz_biblico_api.model.Usuario;
 import com.mathe.quiz_biblico_api.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;

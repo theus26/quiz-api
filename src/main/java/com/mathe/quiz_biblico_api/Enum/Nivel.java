@@ -1,4 +1,4 @@
-package com.mathe.quiz_biblico_api.model;
+package com.mathe.quiz_biblico_api.Enum;
 
 public enum Nivel {
     FACIL,
