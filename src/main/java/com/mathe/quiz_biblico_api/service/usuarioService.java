@@ -1,5 +1,6 @@
 package com.mathe.quiz_biblico_api.service;
 
+import com.mathe.quiz_biblico_api.Exception.AcessoNegadoException;
 import com.mathe.quiz_biblico_api.Exception.UsuarioNotFoundException;
 import com.mathe.quiz_biblico_api.dto.PaginacaoDto;
 import com.mathe.quiz_biblico_api.dto.usuario.AtualizarUsuarioDto;
@@ -7,6 +8,8 @@ import com.mathe.quiz_biblico_api.dto.usuario.CriarUsuarioDto;
 import com.mathe.quiz_biblico_api.dto.usuario.UsuarioDto;
 import com.mathe.quiz_biblico_api.Enum.Role;
 import com.mathe.quiz_biblico_api.model.Usuario;
+import com.mathe.quiz_biblico_api.repository.ConjuntoRepository;
+import com.mathe.quiz_biblico_api.repository.PontuacaoRepository;
 import com.mathe.quiz_biblico_api.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,10 +26,21 @@ public class usuarioService {
     private static final int TAMANHO_MAXIMO_PAGINA = 100;
 
     private final UsuarioRepository _usuarioRepository;
+    private final ConjuntoRepository _conjuntoRepository;
+    private final PontuacaoRepository _pontuacaoRepository;
+    private final UsuarioAutenticadoService _usuarioAutenticadoService;
     private final PasswordEncoder passwordEncoder;
 
-    public usuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public usuarioService(
+            UsuarioRepository usuarioRepository,
+            ConjuntoRepository conjuntoRepository,
+            PontuacaoRepository pontuacaoRepository,
+            UsuarioAutenticadoService usuarioAutenticadoService,
+            PasswordEncoder passwordEncoder) {
         this._usuarioRepository = usuarioRepository;
+        this._conjuntoRepository = conjuntoRepository;
+        this._pontuacaoRepository = pontuacaoRepository;
+        this._usuarioAutenticadoService = usuarioAutenticadoService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -44,6 +59,7 @@ public class usuarioService {
     }
 
     public UsuarioDto AtualizarUsuario(Long id, AtualizarUsuarioDto dto) throws UsuarioNotFoundException {
+        exigirProprioOuAdmin(id);
         Usuario usuario = _usuarioRepository.findById(id).orElseThrow(UsuarioNotFoundException::new);
         if (_usuarioRepository.existsByEmailAndIdNot(dto.email(), id)) {
             throw new IllegalArgumentException("E-mail já cadastrado.");
@@ -58,6 +74,7 @@ public class usuarioService {
     }
 
     public UsuarioDto obterUsuarioPorId(Long id) throws UsuarioNotFoundException {
+        exigirProprioOuAdmin(id);
         return UsuarioDto.fromEntity(_usuarioRepository.findById(id).orElseThrow(UsuarioNotFoundException::new));
     }
 
@@ -81,10 +98,22 @@ public class usuarioService {
         return new PaginacaoDto<>(dados, Math.toIntExact(resultado.getTotalElements()), resultado.getTotalPages());
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void deletarUsuario(Long id) throws UsuarioNotFoundException {
         if (!_usuarioRepository.existsById(id)) {
             throw new UsuarioNotFoundException();
         }
+        _conjuntoRepository.deleteByUsuarioId(id);
+        _pontuacaoRepository.deleteByUsuarioId(id);
         _usuarioRepository.deleteById(id);
+    }
+
+    private void exigirProprioOuAdmin(Long id) throws UsuarioNotFoundException {
+        if (_usuarioAutenticadoService.admin()) {
+            return;
+        }
+        if (_usuarioAutenticadoService.atual().getId() != id) {
+            throw new AcessoNegadoException();
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.mathe.quiz_biblico_api.service;
 
+import com.mathe.quiz_biblico_api.dto.alternativa.AlternativaAdminDto;
 import com.mathe.quiz_biblico_api.dto.alternativa.AlternativaCorretaDto;
 import com.mathe.quiz_biblico_api.dto.alternativa.AlternativaDto;
 import com.mathe.quiz_biblico_api.dto.alternativa.CriarAlternativaDto;
@@ -51,6 +52,15 @@ public class AlternativaService {
                 .toList();
     }
 
+    public void substituir(Pergunta pergunta, AlternativaCorretaDto[] alternativas) {
+        validar(alternativas);
+        pergunta.getAlternativas().clear();
+        _alternativaRepository.flush();
+        pergunta.getAlternativas().addAll(
+                new CriarAlternativaDto(pergunta.getId(), alternativas).toEntities(pergunta, (short) 1)
+        );
+    }
+
     @Transactional(readOnly = true)
     public List<AlternativaDto> listarPorPergunta(Long perguntaId) {
         return _alternativaRepository.findByPerguntaIdOrderByOrdemAsc(perguntaId).stream()
@@ -67,6 +77,18 @@ public class AlternativaService {
                 .collect(Collectors.groupingBy(
                         alternativa -> alternativa.getPergunta().getId(),
                         Collectors.mapping(AlternativaDto::fromEntity, Collectors.toList())
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, List<AlternativaAdminDto>> listarParaGestao(Collection<Long> perguntaIds) {
+        if (perguntaIds == null || perguntaIds.isEmpty()) {
+            return Map.of();
+        }
+        return _alternativaRepository.findByPerguntaIdIn(perguntaIds).stream()
+                .collect(Collectors.groupingBy(
+                        alternativa -> alternativa.getPergunta().getId(),
+                        Collectors.mapping(AlternativaAdminDto::fromEntity, Collectors.toList())
                 ));
     }
 

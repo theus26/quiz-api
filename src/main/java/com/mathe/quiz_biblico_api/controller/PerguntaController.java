@@ -2,9 +2,12 @@ package com.mathe.quiz_biblico_api.controller;
 
 import com.mathe.quiz_biblico_api.Enum.FiltroTestamento;
 import com.mathe.quiz_biblico_api.Exception.PerguntaNotFoundException;
+import com.mathe.quiz_biblico_api.Exception.UsuarioNotFoundException;
+import com.mathe.quiz_biblico_api.dto.PaginacaoDto;
 import com.mathe.quiz_biblico_api.dto.alternativa.ConferirAlternativaDto;
 import com.mathe.quiz_biblico_api.dto.pergunta.AtualizarPerguntaDto;
 import com.mathe.quiz_biblico_api.dto.pergunta.CriarPerguntaDto;
+import com.mathe.quiz_biblico_api.dto.pergunta.PerguntaAdminDto;
 import com.mathe.quiz_biblico_api.dto.pergunta.PerguntaComAlternativasDto;
 import com.mathe.quiz_biblico_api.service.PerguntaService;
 import org.springframework.http.HttpStatus;
@@ -31,14 +34,21 @@ public class PerguntaController {
     }
 
     @PostMapping
-    public ResponseEntity<PerguntaComAlternativasDto> criar(@RequestBody CriarPerguntaDto dto) {
+    public ResponseEntity<PerguntaAdminDto> criar(@RequestBody CriarPerguntaDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(perguntaService.criar(dto));
     }
 
     @GetMapping
     public List<PerguntaComAlternativasDto> listar(
-            @RequestParam(required = false) FiltroTestamento testamento) {
+            @RequestParam(required = false) FiltroTestamento testamento) throws UsuarioNotFoundException {
         return perguntaService.listar(testamento);
+    }
+
+    @GetMapping("/gerenciar")
+    public PaginacaoDto<PerguntaAdminDto> gerenciar(
+            @RequestParam(defaultValue = "1") int pagina,
+            @RequestParam(defaultValue = "10") int tamanho) {
+        return perguntaService.gerenciar(pagina, tamanho);
     }
 
     @GetMapping("/{id}")
@@ -47,7 +57,7 @@ public class PerguntaController {
     }
 
     @PutMapping("/{id}")
-    public PerguntaComAlternativasDto atualizar(
+    public PerguntaAdminDto atualizar(
             @PathVariable Long id,
             @RequestBody AtualizarPerguntaDto dto) throws PerguntaNotFoundException {
         return perguntaService.atualizar(id, dto);
