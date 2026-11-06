@@ -1,6 +1,9 @@
 package com.mathe.quiz_biblico_api.model;
 
 import com.mathe.quiz_biblico_api.Enum.FiltroTestamento;
+import com.mathe.quiz_biblico_api.Enum.Modalidade;
+import com.mathe.quiz_biblico_api.Enum.Nivel;
+import com.mathe.quiz_biblico_api.Enum.ResultadoPartida;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,6 +40,22 @@ public class Pontuacao {
 
     @Column(name = "finalizada_em")
     private Instant finalizadaEm;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 12)
+    private Modalidade modalidade;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private Nivel nivel;
+
+    private Integer respondidas;
+
+    private Integer erros;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 12)
+    private ResultadoPartida resultado;
 
     @PrePersist
     void preencherInicio() {

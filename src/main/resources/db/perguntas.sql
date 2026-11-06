@@ -1,20 +1,17 @@
--- 112 perguntas biblicas para o banco quiz.
--- testamento: ANTIGO ou NOVO. nivel: FACIL, MEDIO ou DIFICIL.
--- Cada pergunta entra com 4 alternativas e uma unica correta.
--- Rodar de novo insere outro lote. Nao apaga o que ja existe.
--- A API precisa ter subido uma vez, para o Hibernate criar as tabelas.
---
+-- Perguntas biblicas iniciais. O script e idempotente:
+-- se o enunciado ou a chave de seed ja existir, nao insere de novo
+-- e nao altera o texto cadastrado por usuarios.
 -- ANTIGO FACIL: 22 | ANTIGO MEDIO: 22 | ANTIGO DIFICIL: 12
 -- NOVO FACIL: 22 | NOVO MEDIO: 22 | NOVO DIFICIL: 12
 
-BEGIN;
-
 CREATE TEMP TABLE seed_pergunta (
     chave integer PRIMARY KEY,
-    enunciado varchar(255) NOT NULL,
+    enunciado varchar(500) NOT NULL,
     testamento varchar(10) NOT NULL CHECK (testamento IN ('ANTIGO', 'NOVO')),
     nivel varchar(10) NOT NULL CHECK (nivel IN ('FACIL', 'MEDIO', 'DIFICIL')),
-    referencia varchar(120) NOT NULL
+    referencia varchar(120) NOT NULL,
+    categoria varchar(80) NOT NULL DEFAULT 'História bíblica',
+    explicacao varchar(500)
 );
 
 CREATE TEMP TABLE seed_alternativa (
@@ -592,20 +589,53 @@ INSERT INTO seed_alternativa (chave, texto, correta, ordem) VALUES
 DO $$
 DECLARE
     r RECORD;
+    existente_id bigint;
     novo_id bigint;
     qtd_certas integer;
+    qtd_alts integer;
 BEGIN
     FOR r IN SELECT * FROM seed_pergunta ORDER BY chave LOOP
         SELECT COUNT(*) INTO qtd_certas
         FROM seed_alternativa
         WHERE chave = r.chave AND correta;
 
-        IF qtd_certas <> 1 THEN
-            RAISE EXCEPTION 'A pergunta % nao tem uma unica alternativa correta', r.chave;
+        SELECT COUNT(*) INTO qtd_alts
+        FROM seed_alternativa
+        WHERE chave = r.chave;
+
+        IF qtd_certas <> 1 OR qtd_alts <> 4 THEN
+            RAISE EXCEPTION 'A pergunta % precisa de 4 alternativas e uma unica correta', r.chave;
         END IF;
 
-        INSERT INTO pergunta (enunciado, testamento, nivel, referencia, ativa, criada_em)
-        VALUES (r.enunciado, r.testamento, r.nivel, r.referencia, true, NOW())
+        SELECT p.id INTO existente_id
+        FROM pergunta p
+        WHERE p.chave_seed = 'seed-' || r.chave
+           OR lower(btrim(p.enunciado)) = lower(btrim(r.enunciado))
+        ORDER BY CASE WHEN p.chave_seed = 'seed-' || r.chave THEN 0 ELSE 1 END, p.id
+        LIMIT 1;
+
+        IF existente_id IS NOT NULL THEN
+            UPDATE pergunta
+            SET chave_seed = 'seed-' || r.chave,
+                status = COALESCE(status, 'APROVADA'),
+                categoria = COALESCE(categoria, r.categoria),
+                explicacao = COALESCE(explicacao, r.explicacao)
+            WHERE id = existente_id
+              AND chave_seed IS NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM pergunta outra WHERE outra.chave_seed = 'seed-' || r.chave
+              );
+            CONTINUE;
+        END IF;
+
+        INSERT INTO pergunta (
+            enunciado, testamento, nivel, referencia, ativa, criada_em,
+            status, categoria, explicacao, chave_seed
+        )
+        VALUES (
+            r.enunciado, r.testamento, r.nivel, r.referencia, true, NOW(),
+            'APROVADA', r.categoria, r.explicacao, 'seed-' || r.chave
+        )
         RETURNING id INTO novo_id;
 
         INSERT INTO alternativa (pergunta_id, texto, correta, ordem)
@@ -615,4 +645,5 @@ BEGIN
     END LOOP;
 END $$;
 
-COMMIT;
+DROP TABLE IF EXISTS seed_alternativa;
+DROP TABLE IF EXISTS seed_pergunta;

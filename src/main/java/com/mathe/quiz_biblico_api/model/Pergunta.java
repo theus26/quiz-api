@@ -1,6 +1,7 @@
 package com.mathe.quiz_biblico_api.model;
 
 import com.mathe.quiz_biblico_api.Enum.Nivel;
+import com.mathe.quiz_biblico_api.Enum.StatusPergunta;
 import com.mathe.quiz_biblico_api.Enum.Testamento;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,7 +22,7 @@ public class Pergunta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String enunciado;
 
     @Enumerated(EnumType.STRING)
@@ -40,6 +41,33 @@ public class Pergunta {
 
     @Column(name = "criada_em", nullable = false)
     private Instant criadaEm;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 12)
+    private StatusPergunta status = StatusPergunta.APROVADA;
+
+    @Column(length = 80)
+    private String categoria;
+
+    @Column(length = 500)
+    private String explicacao;
+
+    @Column(name = "motivo_rejeicao", length = 500)
+    private String motivoRejeicao;
+
+    @Column(name = "chave_seed", length = 40, unique = true)
+    private String chaveSeed;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "autor_id")
+    private Usuario autor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "revisor_id")
+    private Usuario revisor;
+
+    @Column(name = "revisada_em")
+    private Instant revisadaEm;
 
     @OneToMany(mappedBy = "pergunta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Alternativa> alternativas = new ArrayList<>();
