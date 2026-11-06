@@ -1,11 +1,16 @@
 package com.mathe.quiz_biblico_api.service;
 
+import com.mathe.quiz_biblico_api.Enum.Role;
+import com.mathe.quiz_biblico_api.Exception.UsuarioInativoException;
 import com.mathe.quiz_biblico_api.Exception.UsuarioNotFoundException;
 import com.mathe.quiz_biblico_api.model.Usuario;
 import com.mathe.quiz_biblico_api.repository.UsuarioRepository;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UsuarioAutenticadoService {
@@ -16,12 +21,31 @@ public class UsuarioAutenticadoService {
     }
 
     public Usuario atual() throws UsuarioNotFoundException {
-        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
-        if (autenticacao == null || autenticacao.getName() == null || autenticacao.getName().isBlank()) {
-            throw new UsuarioNotFoundException();
+        Usuario usuario = atualOpcional().orElseThrow(UsuarioNotFoundException::new);
+        if (!usuario.getAtivo()) {
+            throw new UsuarioInativoException();
         }
-        return _usuarioRepository.findByEmailIgnoreCase(autenticacao.getName())
-                .orElseThrow(UsuarioNotFoundException::new);
+        return usuario;
+    }
+
+    public boolean adminNoBanco() {
+        return atualOpcional()
+                .filter(usuario -> usuario.getAtivo() && usuario.getRole() == Role.ADMIN)
+                .isPresent();
+    }
+
+    public Optional<Usuario> atualOpcional() {
+        Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
+        if (autenticacao == null
+                || !autenticacao.isAuthenticated()
+                || autenticacao instanceof AnonymousAuthenticationToken) {
+            return Optional.empty();
+        }
+        String email = autenticacao.getName();
+        if (email == null || email.isBlank()) {
+            return Optional.empty();
+        }
+        return _usuarioRepository.findByEmailIgnoreCase(email);
     }
 
     public boolean admin() {

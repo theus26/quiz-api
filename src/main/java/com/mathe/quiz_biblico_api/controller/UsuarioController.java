@@ -2,6 +2,8 @@ package com.mathe.quiz_biblico_api.controller;
 
 import com.mathe.quiz_biblico_api.Exception.UsuarioNotFoundException;
 import com.mathe.quiz_biblico_api.dto.PaginacaoDto;
+import com.mathe.quiz_biblico_api.dto.usuario.AlterarPapelDto;
+import com.mathe.quiz_biblico_api.dto.usuario.AlterarSituacaoDto;
 import com.mathe.quiz_biblico_api.dto.usuario.AtualizarUsuarioDto;
 import com.mathe.quiz_biblico_api.dto.usuario.CriarUsuarioDto;
 import com.mathe.quiz_biblico_api.dto.usuario.UsuarioDto;
@@ -35,9 +37,20 @@ public class UsuarioController {
     @GetMapping
     public PaginacaoDto<UsuarioDto> listar(
             @RequestParam(defaultValue = "1") int pagina,
-            @RequestParam(defaultValue = "10") int tamanho,
-            @RequestParam(required = false) Boolean ativo) {
-        return usuarioService.listarUsuarios(pagina, tamanho, ativo);
+            @RequestParam(defaultValue = "20") int tamanho,
+            @RequestParam(required = false) Boolean ativo,
+            @RequestParam(required = false) String busca) {
+        return usuarioService.listarUsuarios(pagina, tamanho, ativo, busca);
+    }
+
+    @PutMapping("/{id}/papel")
+    public UsuarioDto alterarPapel(@PathVariable Long id, @RequestBody AlterarPapelDto dto) throws UsuarioNotFoundException {
+        return usuarioService.alterarPapel(id, dto);
+    }
+
+    @PutMapping("/{id}/situacao")
+    public UsuarioDto alterarSituacao(@PathVariable Long id, @RequestBody AlterarSituacaoDto dto) throws UsuarioNotFoundException {
+        return usuarioService.alterarSituacao(id, dto);
     }
 
     @GetMapping("/{id}")

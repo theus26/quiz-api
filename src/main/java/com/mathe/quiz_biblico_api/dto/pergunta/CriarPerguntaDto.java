@@ -10,6 +10,8 @@ public record CriarPerguntaDto(
         Testamento testamento,
         Nivel nivel,
         String referencia,
+        String categoria,
+        String explicacao,
         AlternativaCorretaDto[] alternativas
 ) {
     public Pergunta toEntity() {

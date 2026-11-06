@@ -13,6 +13,7 @@ public record PerguntaComAlternativasDto(
         Testamento testamento,
         Nivel nivel,
         String referencia,
+        String categoria,
         List<AlternativaDto> alternativas
 ) {
     public static PerguntaComAlternativasDto fromEntity(Pergunta pergunta, List<AlternativaDto> alternativas) {
@@ -22,6 +23,7 @@ public record PerguntaComAlternativasDto(
                 pergunta.getTestamento(),
                 pergunta.getNivel(),
                 pergunta.getReferencia(),
+                pergunta.getCategoria(),
                 alternativas
         );
     }

@@ -9,6 +9,8 @@ public record AtualizarPerguntaDto(
         Testamento testamento,
         Nivel nivel,
         String referencia,
+        String categoria,
+        String explicacao,
         AlternativaCorretaDto[] alternativas
 ) {
 }

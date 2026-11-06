@@ -15,6 +15,8 @@ public interface AlternativaRepository extends JpaRepository<Alternativa, Long> 
 
     List<Alternativa> findByPerguntaIdOrderByOrdemAsc(Long perguntaId);
 
+    Optional<Alternativa> findFirstByPerguntaIdAndCorretaTrue(Long perguntaId);
+
     @Query("""
             SELECT a FROM Alternativa a
             WHERE a.pergunta.id IN :perguntaIds

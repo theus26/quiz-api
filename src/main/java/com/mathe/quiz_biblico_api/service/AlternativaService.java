@@ -1,5 +1,6 @@
 package com.mathe.quiz_biblico_api.service;
 
+import com.mathe.quiz_biblico_api.Exception.PerguntaNotFoundException;
 import com.mathe.quiz_biblico_api.dto.alternativa.AlternativaAdminDto;
 import com.mathe.quiz_biblico_api.dto.alternativa.AlternativaCorretaDto;
 import com.mathe.quiz_biblico_api.dto.alternativa.AlternativaDto;
@@ -24,14 +25,17 @@ public class AlternativaService {
     }
 
     public void validar(AlternativaCorretaDto[] alternativas) {
-        if (alternativas == null || alternativas.length < 2) {
-            throw new IllegalArgumentException("A pergunta precisa de pelo menos duas alternativas.");
+        if (alternativas == null || alternativas.length != 4) {
+            throw new IllegalArgumentException("A pergunta precisa de quatro alternativas.");
         }
 
         int corretas = 0;
         for (AlternativaCorretaDto alternativa : alternativas) {
             if (alternativa == null || alternativa.texto() == null || alternativa.texto().isBlank()) {
                 throw new IllegalArgumentException("O texto da alternativa é obrigatório.");
+            }
+            if (alternativa.texto().trim().length() > 255) {
+                throw new IllegalArgumentException("Cada alternativa deve ter no máximo 255 caracteres.");
             }
             if (alternativa.correta()) {
                 corretas++;
@@ -95,6 +99,13 @@ public class AlternativaService {
     @Transactional(readOnly = true)
     public boolean conferir(Long perguntaId, Long alternativaId) {
         return _alternativaRepository.buscarCorreta(perguntaId, alternativaId).orElse(false);
+    }
+
+    @Transactional(readOnly = true)
+    public AlternativaDto revelarCorreta(Long perguntaId) throws PerguntaNotFoundException {
+        return _alternativaRepository.findFirstByPerguntaIdAndCorretaTrue(perguntaId)
+                .map(AlternativaDto::fromEntity)
+                .orElseThrow(PerguntaNotFoundException::new);
     }
 
     @Transactional(rollbackFor = Exception.class)
